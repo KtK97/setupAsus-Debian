@@ -12,6 +12,34 @@ This repository contains automation scripts for setting up a fresh Debian instal
 
 **Target OS:** Debian Linux (tested with recent stable releases).
 
+### `install-docker.sh`
+
+**Purpose:** Automates the installation of Docker and Docker Compose on Debian-based systems.
+
+**What it does:**
+- Updates package index
+- Installs prerequisite packages (ca-certificates, curl, gnupg, lsb-release)
+- Adds Docker's official GPG key for package verification
+- Sets up Docker's official stable repository
+- Installs Docker Engine (docker-ce, docker-ce-cli), containerd.io, docker-buildx-plugin, and docker-compose-plugin
+- Starts and enables Docker service to run on system boot
+- Verifies installation by displaying Docker version
+
+**Verification Commands:**
+```bash
+# Check Docker version
+docker --version
+
+# Check Docker service status
+sudo systemctl status docker
+
+# Verify Docker is running
+sudo docker run hello-world
+
+# Check Docker Compose version
+docker compose version
+```
+
 ---
 
 ## Prerequisites
@@ -65,6 +93,33 @@ The `install_broadcom.sh` script automates the complete process of enabling WiFi
    - The script will display a completion message once installation is successful
    - WiFi connection will be established automatically
    - Reboot to ensure all changes persist (optional but recommended)
+
+### Installing Docker
+
+The `install-docker.sh` script automates the installation of Docker on Debian systems.
+
+#### Step-by-Step Guide:
+
+1. **Make the Script Executable:**
+   ```bash
+   chmod +x install-docker.sh
+   ```
+
+2. **Run the Script:**
+   ```bash
+   sudo ./install-docker.sh
+   ```
+
+3. **Completion:**
+   - The script will display the Docker version once installation is complete
+   - Docker service will be started and enabled to run on boot
+
+4. **Verify Docker User Access:**
+   - To run Docker commands without sudo, add your user to the docker group:
+   ```bash
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
 
 ---
 
@@ -198,6 +253,7 @@ If you need to revert the changes made by the script:
 ```
 setupAsus-Debian/
 ├── install_broadcom.sh    # Broadcom BCM43142 WiFi driver installation script
+├── install-docker.sh      # Docker and Docker Compose installation script
 └── readme.md              # This file
 ```
 
