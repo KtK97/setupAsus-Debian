@@ -40,6 +40,29 @@ sudo docker run hello-world
 docker compose version
 ```
 
+### `tailscale-ssh-firewall.sh`
+
+**Purpose:** Locks down SSH access to Tailscale VPN only, preventing SSH connections from the public internet.
+
+**What it does:**
+- Resets all existing UFW (Uncomplicated Firewall) rules
+- Sets default firewall policy to deny incoming and allow outgoing traffic
+- Allows SSH (port 22/tcp) only on the tailscale0 interface
+- Denies SSH connections from all other interfaces
+- Enables UFW firewall
+
+**Verification Commands:**
+```bash
+# Check UFW status and rules
+sudo ufw status verbose
+
+# Verify SSH is allowed only on tailscale0
+sudo ufw status numbered
+
+# Check Tailscale interface
+ip link show tailscale0
+```
+
 ---
 
 ## Prerequisites
@@ -56,6 +79,7 @@ Before running the scripts, ensure the following:
    - `sudo` (included by default on Debian)
    - `apt` package manager
    - `systemd` (for NetworkManager service management)
+   - `ufw` (Uncomplicated Firewall, required for tailscale-ssh-firewall.sh)
 
 ---
 
@@ -120,6 +144,35 @@ The `install-docker.sh` script automates the installation of Docker on Debian sy
    sudo usermod -aG docker $USER
    newgrp docker
    ```
+
+### Locking Down SSH to Tailscale Only
+
+The `tailscale-ssh-firewall.sh` script configures the firewall to allow SSH access only through Tailscale VPN.
+
+#### Step-by-Step Guide:
+
+1. **Prerequisites:**
+   - Ensure Tailscale is installed and running: `sudo tailscale up`
+   - Ensure UFW is installed: `sudo apt install ufw`
+   - Have console or out-of-band access in case of issues
+
+2. **Make the Script Executable:**
+   ```bash
+   chmod +x tailscale-ssh-firewall.sh
+   ```
+
+3. **Run the Script:**
+   ```bash
+   # Interactive mode (asks for confirmation)
+   sudo ./tailscale-ssh-firewall.sh
+
+   # Non-interactive mode (for CI/scripts)
+   sudo ./tailscale-ssh-firewall.sh --yes
+   ```
+
+4. **Completion:**
+   - The script will display the current UFW status showing the applied rules
+   - SSH will now only be accessible via the Tailscale network
 
 ---
 
@@ -194,6 +247,17 @@ The `install_broadcom.sh` script performs the following actions:
    - Ensure Linux headers are installed for your kernel version
    - Check for error messages during the DKMS build step
 
+6. **Tailscale-ssh-firewall.sh: UFW not installed:**
+   - Solution: Install UFW first: `sudo apt install ufw`
+
+7. **Tailscale-ssh-firewall.sh: tailscale0 interface not found:**
+   - Solution: Start Tailscale first: `sudo tailscale up`
+   - Verify with: `ip link show tailscale0`
+
+8. **Locked out after running tailscale-ssh-firewall.sh:**
+   - Use console/out-of-band access to reset UFW rules: `sudo ufw reset`
+   - Or allow SSH temporarily: `sudo ufw allow 22/tcp`
+
 ---
 
 ## Manual Verification
@@ -252,9 +316,10 @@ If you need to revert the changes made by the script:
 
 ```
 setupAsus-Debian/
-├── install_broadcom.sh    # Broadcom BCM43142 WiFi driver installation script
-├── install-docker.sh      # Docker and Docker Compose installation script
-└── readme.md              # This file
+├── install_broadcom.sh          # Broadcom BCM43142 WiFi driver installation script
+├── install-docker.sh            # Docker and Docker Compose installation script
+├── tailscale-ssh-firewall.sh    # Tailscale SSH firewall lockdown script
+└── README.md                    # This file
 ```
 
 ---
